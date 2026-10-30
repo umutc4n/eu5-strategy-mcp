@@ -4,5 +4,6 @@ __pycache__/
 *.sqlite3-*
 *.eu5
 .venv/
+.tools/
 dist/
 *.egg-info/
