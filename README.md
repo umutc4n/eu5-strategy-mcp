@@ -14,6 +14,18 @@ By default this reads `%USERPROFILE%\Documents\Paradox Interactive\Europa Univer
 
 The host's MCP server configuration should point at Python and this project's `eu5_mcp` module. It uses **stdio**. To check the parser independently: `rakaly json "C:\path\to\save.eu5"`.
 
+### Local Streamable HTTP mode (for a secure tunnel)
+
+PowerShell:
+
+```powershell
+$env:EU5_MCP_TRANSPORT = "streamable-http"
+$env:EU5_MCP_PORT = "8765"
+py -m eu5_mcp
+```
+
+The local MCP endpoint is `http://127.0.0.1:8765/mcp`. It binds to loopback only, intentionally has **no public listener**, and should never be exposed by raw port-forwarding. To use it in ChatGPT web, use an authenticated **Secure MCP Tunnel** and then install/connect a ChatGPT plugin. Follow the official [connect-and-test guide](https://developers.openai.com/plugins/deploy/connect-chatgpt). The tunnel and ChatGPT plugin are separate setup steps, not provided by this repository. Until those are configured, ChatGPT web cannot access your PC.
+
 ## Available tools
 
 - `get_game_state`: latest ingested save and freshness.
