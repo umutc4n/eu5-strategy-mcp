@@ -118,6 +118,41 @@ def snapshot_info(row):
     return {"id": row[0], "path": row[1], "observed_at": row[2], **json.loads(row[3])}
 
 
+def get_player_country(data: dict) -> tuple[str, dict]:
+    """Resolve the player country by numeric ID, avoiding hardcoded TUR/Osmanlı."""
+    player = data.get("played_country")
+    if not isinstance(player, dict) or "country" not in player:
+        raise ValueError("Cannot identify played country")
+    country_id = str(player["country"])
+    countries = data.get("countries", {})
+    country = countries.get("database", {}).get(country_id)
+    if not isinstance(country, dict):
+        raise ValueError(f"Country record {country_id} is missing")
+    return country_id, country
+
+
+def extract_player_economy(data: dict) -> dict:
+    country_id, country = get_player_country(data)
+    economy = country.get("economy", {})
+    currency = country.get("currency_data", {})
+    income = economy.get("income")
+    expense = economy.get("expense")
+    if not isinstance(income, (int, float)) or not isinstance(expense, (int, float)):
+        raise ValueError("Expected economy income and expense in numeric format")
+    meta = data.get("metadata", {})
+    return {"game_date": meta.get("date"), "version": meta.get("version"),
+            "country_id": country_id, "country_tag": country.get("definition"),
+            "country_name": meta.get("player_country_name"),
+            "treasury": currency.get("gold"), "monthly_income": income,
+            "monthly_expense": expense, "monthly_balance": round(income - expense, 5),
+            "maintenance": country.get("last_month_maintenance", {}),
+            "owned_locations": len(country.get("owned_locations", [])),
+            "tax_rates": economy.get("tax_rates", {}),
+            "maintenance_settings": economy.get("maintenances", {}),
+            "inflation": currency.get("inflation"),
+            "recent_balances": economy.get("recent_balance", [])[-12:]}
+
+
 def main():
     from mcp.server.fastmcp import FastMCP
 
@@ -133,6 +168,18 @@ def main():
         rows = latest_rows(1)
         return {"save_directory": str(SAVE_DIR), "status": "ready" if rows else "waiting_for_save",
                 "snapshot": snapshot_info(rows[0]) if rows else None}
+
+    @server.tool()
+    def get_player_economy() -> dict:
+        """Typed player economy from EU5 1.4.x saves: treasury, income, spending, taxes, maintenance."""
+        rows = latest_rows(1)
+        if not rows:
+            return {"error": "No parsed save yet"}
+        try:
+            return {"snapshot_id": rows[0][0], "observed_at": rows[0][2],
+                    **extract_player_economy(json.loads(rows[0][4]))}
+        except (ValueError, AttributeError, TypeError) as error:
+            return {"error": f"Unsupported save schema: {error}"}
 
     @server.tool()
     def get_save_data(path: str, max_chars: int = 12000) -> dict:
