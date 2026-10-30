@@ -121,7 +121,11 @@ def snapshot_info(row):
 def main():
     from mcp.server.fastmcp import FastMCP
 
-    server = FastMCP("eu5-strategy-readonly")
+    transport = os.environ.get("EU5_MCP_TRANSPORT", "stdio")
+    if transport not in ("stdio", "streamable-http"):
+        raise ValueError("EU5_MCP_TRANSPORT must be stdio or streamable-http")
+    # Localhost only. Remote ChatGPT access must use an authenticated secure tunnel.
+    server = FastMCP("eu5-strategy-readonly", host="127.0.0.1", port=int(os.environ.get("EU5_MCP_PORT", "8765")))
 
     @server.tool()
     def get_game_state() -> dict:
@@ -177,7 +181,7 @@ def main():
 
     thread = threading.Thread(target=watcher, daemon=True)
     thread.start()
-    server.run(transport="stdio")
+    server.run(transport=transport)
 
 
 if __name__ == "__main__":
