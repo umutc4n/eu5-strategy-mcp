@@ -2,7 +2,7 @@
 name = "eu5-mcp"
 version = "0.1.0"
 requires-python = ">=3.11"
-dependencies = ["mcp>=1.9,<3"]
+dependencies = ["mcp>=1.9,<2"]
 
 [project.scripts]
 eu5-mcp = "eu5_mcp:main"
