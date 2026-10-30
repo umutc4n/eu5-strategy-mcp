@@ -32,8 +32,9 @@ The local MCP endpoint is `http://127.0.0.1:8765/mcp`. It binds to loopback only
 - `list_save_fields`: discover real parsed schema.
 - `get_save_data`: read an explicitly chosen subtree (25k character cap).
 - `compare_snapshots`: compare a scalar across the last two snapshots.
+- `get_player_economy`: verified typed economy extraction for the currently played nation (EU5 1.4.x).
 
-We intentionally **do not pretend** economy, diplomacy or military fields have a stable schema across patches. Validate with a real EU5 save first, then implement typed domain tools. Before each strategic answer the AI should check save date and freshness, and never present old data as live.
+Economy parsing was validated against an actual EU5 1.4.5 Ottoman autosave, which is **not included in this public repository**. Other game patches may differ. Diplomacy and military schemas still require validation. Before each strategic answer the AI should check save date and freshness, and never present old data as live.
 
 ## Browser ChatGPT limitation
 
